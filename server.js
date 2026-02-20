@@ -15,13 +15,16 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors()); // libera o acesso do frontend
-app.use(express.json()); // permite receber JSON
+app.use(cors());
+app.use(express.json());
 
 app.post('/usuarios', async (req, res) => {
   const dados = req.body;
 
   try {
+    // ✅ TRATAMENTO DO CAMPO DATE
+    const dataAtendimentoTratada = dados.dataAtendimento || null;
+
     await pool.query(
       `INSERT INTO usuarios(
         nome, funcao, cpf, matricula, telefone, sexo, dataAtendimento,
@@ -45,7 +48,7 @@ app.post('/usuarios', async (req, res) => {
         dados.matricula,
         dados.telefone,
         dados.sexo,
-        dados.dataAtendimento,
+        dataAtendimentoTratada, // ✅ AQUI corrigido
         dados.deficiencia,
         dados.tipoDeficiencia,
         dados.acidenteTrabalho,
@@ -78,8 +81,8 @@ app.post('/usuarios', async (req, res) => {
 
     res.json({ mensagem: 'Usuário cadastrado com sucesso!' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ erro: 'Erro ao salvar no banco' });
+    console.error('Erro real:', error);
+    res.status(500).json({ erro: error.message });
   }
 });
 
@@ -88,7 +91,7 @@ app.get('/usuarios', async (req, res) => {
     const resultado = await pool.query('SELECT * FROM usuarios');
     res.json(resultado.rows);
   } catch (error) {
-    res.status(500).json({ erro: 'Erro ao buscar usuários' });
+    res.status(500).json({ erro: error.message });
   }
 });
 
@@ -103,9 +106,9 @@ app.get('/usuarios/:cpf', async (req, res) => {
       return res.status(404).json({ erro: 'Usuário não encontrado' });
     }
 
-    res.json(resultado.rows);
+    res.json(resultado.rows[0]);
   } catch (error) {
-    res.status(500).json({ erro: 'Erro ao buscar usuário' });
+    res.status(500).json({ erro: error.message });
   }
 });
 
