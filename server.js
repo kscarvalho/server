@@ -1,14 +1,4 @@
 const pool = require('./db');
-
-(async () => {
-  try {
-    const res = await pool.query('SELECT NOW()');
-    console.log('Banco conectado:', res.rows);
-  } catch (err) {
-    console.error('Erro na conexão:', err);
-  }
-})();
-
 const express = require('express');
 const cors = require('cors');
 
@@ -22,11 +12,10 @@ app.post('/usuarios', async (req, res) => {
   const dados = req.body;
 
   try {
-    // ✅ TRATAMENTO DO CAMPO DATE
     const dataAtendimentoTratada = dados.dataAtendimento || null;
 
-    await pool.query(
-      `INSERT INTO usuarios(
+    const query = `
+      INSERT INTO usuarios(
         nome, funcao, cpf, matricula, telefone, sexo, dataAtendimento,
         deficiencia, tipoDeficiencia, acidenteTrabalho, doencaOcupacional,
         afastamentoInss, admissional, periodico, retornoTrabalho,
@@ -40,65 +29,76 @@ app.post('/usuarios', async (req, res) => {
         $11,$12,$13,$14,$15,$16,$17,$18,$19,
         $20,$21,$22,$23,$24,$25,$26,$27,$28,
         $29,$30,$31,$32,$33,$34
-      )`,
-      [
-        dados.nome,
-        dados.funcao,
-        dados.cpf,
-        dados.matricula,
-        dados.telefone,
-        dados.sexo,
-        dataAtendimentoTratada, // ✅ AQUI corrigido
-        dados.deficiencia,
-        dados.tipoDeficiencia,
-        dados.acidenteTrabalho,
-        dados.doencaOcupacional,
-        dados.afastamentoInss,
-        dados.admissional,
-        dados.periodico,
-        dados.retornoTrabalho,
-        dados.mudancaFuncao,
-        dados.tratamentoMedico,
-        dados.medicamentoContinuo,
-        dados.algumaDoenca,
-        dados.doencaCoracao,
-        dados.faltaAr,
-        dados.pernasInchadas,
-        dados.alergico,
-        dados.diabetico,
-        dados.transfusaoSangue,
-        dados.cirugia,
-        dados.fratura,
-        dados.atividadeFisica,
-        dados.fuma,
-        dados.bebida,
-        dados.drogas,
-        dados.transtornoMental,
-        dados.anotacao,
-        dados.conclusao,
-      ],
-    );
+      )
+      RETURNING *;
+    `;
 
-    res.json({ mensagem: 'Usuário cadastrado com sucesso!' });
+    const values = [
+      dados.nome,
+      dados.funcao,
+      dados.cpf,
+      dados.matricula,
+      dados.telefone,
+      dados.sexo,
+      dataAtendimentoTratada,
+      dados.deficiencia,
+      dados.tipoDeficiencia,
+      dados.acidenteTrabalho,
+      dados.doencaOcupacional,
+      dados.afastamentoInss,
+      dados.admissional,
+      dados.periodico,
+      dados.retornoTrabalho,
+      dados.mudancaFuncao,
+      dados.tratamentoMedico,
+      dados.medicamentoContinuo,
+      dados.algumaDoenca,
+      dados.doencaCoracao,
+      dados.faltaAr,
+      dados.pernasInchadas,
+      dados.alergico,
+      dados.diabetico,
+      dados.transfusaoSangue,
+      dados.cirugia,
+      dados.fratura,
+      dados.atividadeFisica,
+      dados.fuma,
+      dados.bebida,
+      dados.drogas,
+      dados.transtornoMental,
+      dados.anotacao,
+      dados.conclusao,
+    ];
+
+    const resultado = await pool.query(query, values);
+
+    res.status(201).json({
+      mensagem: 'Usuário cadastrado com sucesso!',
+      dados: resultado.rows[0],
+    });
   } catch (error) {
     console.error('Erro real:', error);
-    res.status(500).json({ erro: error.message });
+    res.status(500).json({
+      erro: 'Erro interno no servidor',
+    });
   }
 });
 
 app.get('/usuarios', async (req, res) => {
   try {
-    const resultado = await pool.query('SELECT * FROM usuarios');
+    const resultado = await pool.query(
+      'SELECT * FROM usuarios ORDER BY id DESC',
+    );
     res.json(resultado.rows);
   } catch (error) {
-    res.status(500).json({ erro: error.message });
+    res.status(500).json({ erro: 'Erro interno no servidor' });
   }
 });
 
 app.get('/usuarios/:cpf', async (req, res) => {
   try {
     const resultado = await pool.query(
-      'SELECT * FROM usuarios WHERE cpf = $1',
+      'SELECT * FROM usuarios WHERE cpf = $1 ORDER BY id DESC',
       [req.params.cpf],
     );
 
@@ -106,9 +106,9 @@ app.get('/usuarios/:cpf', async (req, res) => {
       return res.status(404).json({ erro: 'Usuário não encontrado' });
     }
 
-    res.json(resultado.rows[0]);
+    res.json(resultado.rows);
   } catch (error) {
-    res.status(500).json({ erro: error.message });
+    res.status(500).json({ erro: 'Erro interno no servidor' });
   }
 });
 
