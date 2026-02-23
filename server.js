@@ -21,7 +21,7 @@ app.post('/usuarios', async (req, res) => {
         afastamentoInss, admissional, periodico, retornoTrabalho,
         mudancaFuncao, tratamentoMedico, medicamentoContinuo,
         algumaDoenca, doencaCoracao, faltaAr, pernasInchadas,
-        alergico, diabetico, transfusaoSangue, cirugia, fratura,
+        alergico, diabetico, transfusaoSangue, cirurgia, fratura,
         atividadeFisica, fuma, bebida, drogas, transtornoMental,
         anotacao, conclusao
       ) VALUES (
@@ -59,7 +59,7 @@ app.post('/usuarios', async (req, res) => {
       dados.alergico,
       dados.diabetico,
       dados.transfusaoSangue,
-      dados.cirugia,
+      dados.cirurgia,
       dados.fratura,
       dados.atividadeFisica,
       dados.fuma,
