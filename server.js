@@ -53,7 +53,7 @@ app.post('/usuarios', async (req, res) => {
       dados.tratamentomedico,
       dados.medicamentocontinuo,
       dados.algumadoenca,
-      dados.doencadoracao,
+      dados.doencacoracao,
       dados.faltaar,
       dados.pernasinchadas,
       dados.alergico,
